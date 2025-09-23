@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Save, FileText } from 'lucide-react';
+import { ArrowLeft, Save, FileText, Download } from 'lucide-react';
 import { WorkPermit } from '../types';
+import { PDFGenerator } from '../utils/pdfGenerator';
 
 interface WorkPermitFormProps {
   onBack: () => void;
@@ -52,6 +53,25 @@ export const WorkPermitForm: React.FC<WorkPermitFormProps> = ({
     };
 
     onSave(workPermit);
+  };
+
+  const handleExportPDF = () => {
+    // Validate required fields
+    const requiredFields = ['name', 'identification', 'company', 'accessReason', 'authorizedPerson'];
+    const missingFields = requiredFields.filter(field => !formData[field as keyof typeof formData].trim());
+
+    if (missingFields.length > 0) {
+      alert('Por favor complete todos los campos requeridos antes de exportar');
+      return;
+    }
+
+    const workPermit: WorkPermit = {
+      id: `WP-${Date.now()}`,
+      ...formData,
+      createdAt: new Date().toISOString()
+    };
+
+    PDFGenerator.generateWorkPermitPDF(workPermit);
   };
 
   return (
@@ -274,13 +294,22 @@ export const WorkPermitForm: React.FC<WorkPermitFormProps> = ({
 
           {/* Save Button */}
           <div className="mt-8 pt-6 border-t border-gray-200">
-            <button
-              onClick={handleSave}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200 flex items-center justify-center"
-            >
-              <Save className="w-5 h-5 mr-2" />
-              Guardar Permiso de Trabajo
-            </button>
+            <div className="flex space-x-4">
+              <button
+                onClick={handleSave}
+                className="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200 flex items-center justify-center"
+              >
+                <Save className="w-5 h-5 mr-2" />
+                Guardar Permiso
+              </button>
+              <button
+                onClick={handleExportPDF}
+                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200 flex items-center justify-center"
+              >
+                <Download className="w-5 h-5 mr-2" />
+                Exportar PDF
+              </button>
+            </div>
           </div>
         </div>
       </div>

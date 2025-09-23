@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Download, Eye, Filter, Calendar } from 'lucide-react';
+import { ArrowLeft, Download, Eye, Filter, Calendar, FileText } from 'lucide-react';
 import { Inspection, WorkPermit } from '../types';
+import { PDFGenerator } from '../utils/pdfGenerator';
 
 interface HistoryProps {
   onBack: () => void;
@@ -301,6 +302,13 @@ export const History: React.FC<HistoryProps> = ({ onBack }) => {
                         <Eye className="w-4 h-4 mr-2" />
                         Ver Detalle
                       </button>
+                      <button
+                        onClick={() => PDFGenerator.generateInspectionPDF(inspection)}
+                        className="flex items-center bg-blue-100 hover:bg-blue-200 text-blue-700 px-4 py-2 rounded-lg transition-colors mt-3 ml-2"
+                      >
+                        <FileText className="w-4 h-4 mr-2" />
+                        Exportar PDF
+                      </button>
                     </div>
                   ))}
                 </div>
@@ -337,6 +345,13 @@ export const History: React.FC<HistoryProps> = ({ onBack }) => {
                         >
                           <Eye className="w-4 h-4 mr-2" />
                           Ver Detalle
+                        </button>
+                        <button
+                          onClick={() => PDFGenerator.generateWorkPermitPDF(permit)}
+                          className="flex items-center bg-blue-100 hover:bg-blue-200 text-blue-700 px-4 py-2 rounded-lg transition-colors ml-2"
+                        >
+                          <FileText className="w-4 h-4 mr-2" />
+                          Exportar PDF
                         </button>
                       </div>
                     </div>

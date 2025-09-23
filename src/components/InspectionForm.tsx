@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Save, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, Save, AlertCircle, CheckCircle2, Download } from 'lucide-react';
 import { Inspection, ChecklistItem } from '../types';
 import { checklistTemplate } from '../data/checklistTemplate';
+import { PDFGenerator } from '../utils/pdfGenerator';
 
 interface InspectionFormProps {
   datacenter: 'DC1' | 'DC2';
@@ -66,6 +67,27 @@ export const InspectionForm: React.FC<InspectionFormProps> = ({
     };
 
     onSave(inspection);
+  };
+
+  const handleExportPDF = () => {
+    if (!inspector.trim()) {
+      alert('Por favor ingrese el nombre del inspector antes de exportar');
+      return;
+    }
+
+    const inspection: Inspection = {
+      id: `${Date.now()}`,
+      datacenter,
+      date: new Date().toISOString().split('T')[0],
+      time: new Date().toLocaleTimeString('es-ES', { hour12: false }),
+      shift,
+      checklist,
+      generalObservations,
+      inspector: inspector.trim(),
+      completed: true
+    };
+
+    PDFGenerator.generateInspectionPDF(inspection);
   };
 
   const getCategoryName = (category: string) => {
@@ -211,14 +233,24 @@ export const InspectionForm: React.FC<InspectionFormProps> = ({
 
         {/* Save Button */}
         <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-          <button
-            onClick={handleSave}
-            disabled={!inspector.trim()}
-            className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200 flex items-center justify-center"
-          >
-            <Save className="w-5 h-5 mr-2" />
-            Guardar Inspección
-          </button>
+          <div className="flex space-x-4">
+            <button
+              onClick={handleSave}
+              disabled={!inspector.trim()}
+              className="flex-1 bg-green-600 hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200 flex items-center justify-center"
+            >
+              <Save className="w-5 h-5 mr-2" />
+              Guardar Inspección
+            </button>
+            <button
+              onClick={handleExportPDF}
+              disabled={!inspector.trim()}
+              className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200 flex items-center justify-center"
+            >
+              <Download className="w-5 h-5 mr-2" />
+              Exportar PDF
+            </button>
+          </div>
         </div>
       </div>
     </div>
