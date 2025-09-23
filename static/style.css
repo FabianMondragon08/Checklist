@@ -1,8 +1,0 @@
-
-/* Apariencia ligera y compacta para móviles */
-body { background: #f8f9fa; }
-.card { border-radius: 1rem; }
-.list-group-item { border: none; border-bottom: 1px solid #eee; }
-@media (max-width: 576px) {
-  h3 { font-size: 1.25rem; }
-}
