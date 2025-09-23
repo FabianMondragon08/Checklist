@@ -1,0 +1,90 @@
+
+{% extends "base.html" %}
+{% block content %}
+<h3 class="mb-3">Permiso de trabajo o actividad en Data Center (Anexo 1)</h3>
+<form method="post" class="row g-3 needs-validation" novalidate>
+  <div class="col-12 col-md-6">
+    <label class="form-label">Nombre*</label>
+    <input class="form-control" name="nombre" required>
+    <div class="invalid-feedback">Requerido</div>
+  </div>
+  <div class="col-12 col-md-6">
+    <label class="form-label">Identificación</label>
+    <input class="form-control" name="identificacion">
+  </div>
+  <div class="col-12 col-md-6">
+    <label class="form-label">Empresa</label>
+    <input class="form-control" name="empresa">
+  </div>
+  <div class="col-12">
+    <label class="form-label">Motivo del acceso</label>
+    <input class="form-control" name="motivo">
+  </div>
+  <div class="col-12">
+    <label class="form-label">Equipos o herramientas que ingresan</label>
+    <textarea class="form-control" name="equipos" rows="2"></textarea>
+  </div>
+
+  <div class="col-6 col-md-3">
+    <label class="form-label">Fecha de ingreso</label>
+    <input class="form-control" type="date" name="fecha_ingreso" value="{{ hoy }}">
+  </div>
+  <div class="col-6 col-md-3">
+    <label class="form-label">Hora de ingreso</label>
+    <input class="form-control" type="time" name="hora_ingreso" value="{{ ahora }}">
+  </div>
+  <div class="col-6 col-md-3">
+    <label class="form-label">Fecha de salida</label>
+    <input class="form-control" type="date" name="fecha_salida">
+  </div>
+  <div class="col-6 col-md-3">
+    <label class="form-label">Hora de salida</label>
+    <input class="form-control" type="time" name="hora_salida">
+  </div>
+
+  <div class="col-12">
+    <label class="form-label">Persona que autoriza el acceso (nombre y cargo)</label>
+    <input class="form-control" name="autoriza">
+  </div>
+
+  <div class="col-12">
+    <label class="form-label">Observaciones</label>
+    <textarea class="form-control" name="observaciones" rows="5"></textarea>
+  </div>
+
+  <div class="col-12 col-md-4">
+    <label class="form-label">Firma Proveedor (nombre)</label>
+    <input class="form-control" name="firma_proveedor">
+  </div>
+  <div class="col-12 col-md-4">
+    <label class="form-label">Firma DC Manager (nombre)</label>
+    <input class="form-control" name="firma_dc_manager">
+  </div>
+  <div class="col-12 col-md-4">
+    <label class="form-label">Firma Colaborador (nombre)</label>
+    <input class="form-control" name="firma_colaborador">
+  </div>
+
+  <div class="d-grid d-md-flex gap-2">
+    <button class="btn btn-warning" type="submit">Guardar permiso</button>
+    <a href="{{ url_for('permisos_lista') }}" class="btn btn-outline-secondary">Cancelar</a>
+  </div>
+</form>
+
+<script>
+// Bootstrap client-side validation
+(() => {
+  'use strict'
+  const forms = document.querySelectorAll('.needs-validation')
+  Array.from(forms).forEach(form => {
+    form.addEventListener('submit', event => {
+      if (!form.checkValidity()) {
+        event.preventDefault()
+        event.stopPropagation()
+      }
+      form.classList.add('was-validated')
+    }, false)
+  })
+})()
+</script>
+{% endblock %}
