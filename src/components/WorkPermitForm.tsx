@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Save, FileText, Download } from 'lucide-react';
 import { WorkPermit } from '../types';
+import { WorkPermitService } from '../services/workPermitService';
 import { PDFGenerator } from '../utils/pdfGenerator';
+import { useAuth } from '../contexts/AuthContext';
 
 interface WorkPermitFormProps {
   onBack: () => void;
@@ -12,6 +15,7 @@ export const WorkPermitForm: React.FC<WorkPermitFormProps> = ({
   onBack,
   onSave
 }) => {
+  const { profile } = useAuth();
   const [formData, setFormData] = useState({
     name: '',
     identification: '',
@@ -29,6 +33,15 @@ export const WorkPermitForm: React.FC<WorkPermitFormProps> = ({
     collaboratorSignature: ''
   });
 
+  useEffect(() => {
+    if (profile?.full_name) {
+      setFormData(prev => ({
+        ...prev,
+        authorizedPerson: profile.full_name
+      }));
+    }
+  }, [profile]);
+
   const handleInputChange = (field: keyof typeof formData, value: string) => {
     setFormData(prev => ({
       ...prev,
@@ -36,7 +49,7 @@ export const WorkPermitForm: React.FC<WorkPermitFormProps> = ({
     }));
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     // Validate required fields
     const requiredFields = ['name', 'identification', 'company', 'accessReason', 'authorizedPerson'];
     const missingFields = requiredFields.filter(field => !formData[field as keyof typeof formData].trim());
@@ -46,13 +59,14 @@ export const WorkPermitForm: React.FC<WorkPermitFormProps> = ({
       return;
     }
 
-    const workPermit: WorkPermit = {
-      id: `WP-${Date.now()}`,
-      ...formData,
-      createdAt: new Date().toISOString()
-    };
-
-    onSave(workPermit);
+    try {
+      await WorkPermitService.createWorkPermit(formData);
+      alert('Permiso de trabajo guardado exitosamente');
+      onBack();
+    } catch (error) {
+      console.error('Error saving work permit:', error);
+      alert('Error al guardar el permiso de trabajo');
+    }
   };
 
   const handleExportPDF = () => {

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { CheckSquare, FileText, History, Plus } from 'lucide-react';
-import { Inspection, WorkPermit } from '../types';
+import { InspectionService } from '../services/inspectionService';
+import { WorkPermitService } from '../services/workPermitService';
 
 interface DashboardProps {
   onNewInspection: (datacenter: 'DC1' | 'DC2', shift: 'morning' | 'afternoon') => void;
@@ -22,21 +23,28 @@ export const Dashboard: React.FC<DashboardProps> = ({
   });
 
   useEffect(() => {
-    const today = new Date().toISOString().split('T')[0];
-    const inspections: Inspection[] = JSON.parse(localStorage.getItem('inspections') || '[]');
-    const workPermits: WorkPermit[] = JSON.parse(localStorage.getItem('workPermits') || '[]');
-
-    const todayInspections = inspections.filter(i => i.date === today);
-    const todayPermits = workPermits.filter(p => p.entryDate === today);
-
-    setTodayStats({
-      dc1Morning: todayInspections.some(i => i.datacenter === 'DC1' && i.shift === 'morning' && i.completed),
-      dc1Afternoon: todayInspections.some(i => i.datacenter === 'DC1' && i.shift === 'afternoon' && i.completed),
-      dc2Morning: todayInspections.some(i => i.datacenter === 'DC2' && i.shift === 'morning' && i.completed),
-      dc2Afternoon: todayInspections.some(i => i.datacenter === 'DC2' && i.shift === 'afternoon' && i.completed),
-      workPermitsToday: todayPermits.length
-    });
+    loadTodayStats();
   }, []);
+
+  const loadTodayStats = async () => {
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      
+      // Load inspection stats
+      const inspectionStats = await InspectionService.getTodayStats(today);
+      
+      // Load work permits count
+      const workPermitsCount = await WorkPermitService.getWorkPermitsCountByDate(today);
+      
+      setTodayStats({
+        ...inspectionStats,
+        workPermitsToday: workPermitsCount
+      });
+    } catch (error) {
+      console.error('Error loading today stats:', error);
+      // Keep default stats on error
+    }
+  };
 
   const getCurrentShift = () => {
     const hour = new Date().getHours();

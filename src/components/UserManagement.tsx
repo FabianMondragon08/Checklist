@@ -7,7 +7,7 @@ interface User {
   id: string;
   email: string;
   full_name: string | null;
-  role: 'inspector' | 'supervisor' | 'admin' | 'superadmin';
+  role: 'inspector' | 'supervisor' | 'admin';
   department: string;
   active: boolean;
   created_at: string;
@@ -26,7 +26,7 @@ export const UserManagement: React.FC = () => {
   });
 
   useEffect(() => {
-    if (profile?.role === 'superadmin') {
+    if (profile?.role === 'admin') {
       fetchUsers();
     }
   }, [profile]);
@@ -91,6 +91,7 @@ export const UserManagement: React.FC = () => {
   };
 
   if (profile?.role !== 'superadmin') {
+  if (profile?.role !== 'admin') {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
         <div className="bg-white rounded-xl shadow-lg p-8 text-center">
@@ -225,13 +226,11 @@ export const UserManagement: React.FC = () => {
                         <td className="py-3 px-4">{user.email}</td>
                         <td className="py-3 px-4">
                           <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            user.role === 'superadmin' ? 'bg-purple-100 text-purple-800' :
                             user.role === 'admin' ? 'bg-red-100 text-red-800' :
                             user.role === 'supervisor' ? 'bg-yellow-100 text-yellow-800' :
                             'bg-blue-100 text-blue-800'
                           }`}>
-                            {user.role === 'superadmin' ? 'Super Admin' :
-                             user.role === 'admin' ? 'Admin' :
+                            {user.role === 'admin' ? 'Admin' :
                              user.role === 'supervisor' ? 'Supervisor' : 'Inspector'}
                           </span>
                         </td>
@@ -243,7 +242,7 @@ export const UserManagement: React.FC = () => {
                           </span>
                         </td>
                         <td className="py-3 px-4">
-                          {user.role !== 'superadmin' && (
+                          {user.role !== 'admin' && (
                             <button
                               onClick={() => toggleUserStatus(user.id, user.active)}
                               className={`px-3 py-1 rounded text-xs font-medium transition-colors ${

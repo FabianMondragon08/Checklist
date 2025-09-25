@@ -96,6 +96,7 @@ const AppContent: React.FC = () => {
               Dashboard
             </button>
             {profile.role === 'superadmin' && (
+            {profile.role === 'admin' && (
               <button
                 onClick={handleViewUsers}
                 className={`flex items-center px-3 py-2 rounded-lg transition-colors ${
@@ -113,8 +114,7 @@ const AppContent: React.FC = () => {
             <div className="text-sm text-gray-600">
               <span className="font-medium">{profile.full_name || 'Usuario'}</span>
               <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
-                {profile.role === 'superadmin' ? 'Super Admin' :
-                 profile.role === 'admin' ? 'Admin' :
+                {profile.role === 'admin' ? 'Admin' :
                  profile.role === 'supervisor' ? 'Supervisor' : 'Inspector'}
               </span>
             </div>

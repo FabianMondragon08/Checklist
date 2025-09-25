@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Download, Eye, Filter, Calendar, FileText } from 'lucide-react';
 import { Inspection, WorkPermit } from '../types';
+import { InspectionService } from '../services/inspectionService';
+import { WorkPermitService } from '../services/workPermitService';
 import { PDFGenerator } from '../utils/pdfGenerator';
 
 interface HistoryProps {
@@ -15,12 +17,22 @@ export const History: React.FC<HistoryProps> = ({ onBack }) => {
   const [selectedItem, setSelectedItem] = useState<Inspection | WorkPermit | null>(null);
 
   useEffect(() => {
-    const storedInspections: Inspection[] = JSON.parse(localStorage.getItem('inspections') || '[]');
-    const storedPermits: WorkPermit[] = JSON.parse(localStorage.getItem('workPermits') || '[]');
-    
-    setInspections(storedInspections.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
-    setWorkPermits(storedPermits.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
+    loadData();
   }, []);
+
+  const loadData = async () => {
+    try {
+      const [inspectionsData, workPermitsData] = await Promise.all([
+        InspectionService.getInspections(),
+        WorkPermitService.getWorkPermits()
+      ]);
+      
+      setInspections(inspectionsData);
+      setWorkPermits(workPermitsData);
+    } catch (error) {
+      console.error('Error loading data:', error);
+    }
+  };
 
   const filteredInspections = inspections.filter(inspection => 
     !dateFilter || inspection.date === dateFilter

@@ -109,6 +109,7 @@ export class InspectionService {
       if (error) throw error;
 
       return data.map(template => ({
+        id: template.id,
         category: template.category,
         description: template.description
       }));

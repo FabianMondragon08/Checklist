@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Save, AlertCircle, CheckCircle2, Download } from 'lucide-react';
 import { Inspection, ChecklistItem } from '../types';
-import { checklistTemplate } from '../data/checklistTemplate';
+import { InspectionService } from '../services/inspectionService';
 import { PDFGenerator } from '../utils/pdfGenerator';
+import { useAuth } from '../contexts/AuthContext';
 
 interface InspectionFormProps {
   datacenter: 'DC1' | 'DC2';
@@ -17,16 +19,38 @@ export const InspectionForm: React.FC<InspectionFormProps> = ({
   onBack,
   onSave
 }) => {
+  const { profile } = useAuth();
   const [inspector, setInspector] = useState('');
   const [generalObservations, setGeneralObservations] = useState('');
-  const [checklist, setChecklist] = useState<ChecklistItem[]>(
-    checklistTemplate.map((item, index) => ({
-      ...item,
-      id: `${index}`,
-      completed: false,
-      observations: ''
-    }))
-  );
+  const [checklist, setChecklist] = useState<ChecklistItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadChecklistTemplates();
+    if (profile?.full_name) {
+      setInspector(profile.full_name);
+    }
+  }, [profile]);
+
+  const loadChecklistTemplates = async () => {
+    try {
+      const templates = await InspectionService.getChecklistTemplates();
+      const checklistItems = templates.map((template, index) => ({
+        id: template.id || `${index}`,
+        category: template.category,
+        description: template.description,
+        completed: false,
+        observations: ''
+      }));
+      setChecklist(checklistItems);
+    } catch (error) {
+      console.error('Error loading checklist templates:', error);
+      // Fallback to empty checklist
+      setChecklist([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleItemToggle = (itemId: string) => {
     setChecklist(prev =>
@@ -49,13 +73,13 @@ export const InspectionForm: React.FC<InspectionFormProps> = ({
   };
 
   const handleSave = () => {
+  const handleSave = async () => {
     if (!inspector.trim()) {
       alert('Por favor ingrese el nombre del inspector');
       return;
     }
 
-    const inspection: Inspection = {
-      id: `${Date.now()}`,
+    const inspectionData = {
       datacenter,
       date: new Date().toISOString().split('T')[0],
       time: new Date().toLocaleTimeString('es-ES', { hour12: false }),
@@ -66,7 +90,14 @@ export const InspectionForm: React.FC<InspectionFormProps> = ({
       completed: true
     };
 
-    onSave(inspection);
+    try {
+      await InspectionService.createInspection(inspectionData);
+      alert('Inspección guardada exitosamente');
+      onBack();
+    } catch (error) {
+      console.error('Error saving inspection:', error);
+      alert('Error al guardar la inspección');
+    }
   };
 
   const handleExportPDF = () => {
