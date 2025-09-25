@@ -1,6 +1,16 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { User, Session } from '@supabase/supabase-js';
-import { supabase } from '../lib/supabase';
+// import { User, Session } from '@supabase/supabase-js';
+// import { supabase } from '../lib/supabase';
+
+// Mock types for development
+interface User {
+  id: string;
+  email?: string;
+}
+
+interface Session {
+  user: User;
+}
 
 interface UserProfile {
   id: string;
@@ -20,6 +30,14 @@ interface AuthContextType {
   signUp: (email: string, password: string, fullName: string, role: 'inspector' | 'supervisor' | 'admin') => Promise<void>;
 }
 
+// Mock users for development
+const mockUsers = [
+  { id: '1', email: 'admin@datacenter.com', password: 'SuperAdmin123!', profile: { id: '1', full_name: 'Super Admin', role: 'superadmin' as const, department: 'datacenter', active: true } },
+  { id: '2', email: 'inspector@datacenter.com', password: 'Inspector123!', profile: { id: '2', full_name: 'Inspector', role: 'inspector' as const, department: 'datacenter', active: true } },
+  { id: '3', email: 'supervisor@datacenter.com', password: 'Supervisor123!', profile: { id: '3', full_name: 'Supervisor', role: 'supervisor' as const, department: 'datacenter', active: true } },
+  { id: '4', email: 'admin2@datacenter.com', password: 'Admin123!', profile: { id: '4', full_name: 'Admin', role: 'admin' as const, department: 'datacenter', active: true } }
+];
+
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const useAuth = () => {
@@ -37,44 +55,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        fetchUserProfile(session.user.id);
-      } else {
-        setLoading(false);
-      }
-    });
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        if (session?.user) {
-          await fetchUserProfile(session.user.id);
-        } else {
-          setProfile(null);
-          setLoading(false);
-        }
-      }
-    );
-
-    return () => subscription.unsubscribe();
+    // Check for existing session in localStorage
+    const savedUser = localStorage.getItem('currentUser');
+    if (savedUser) {
+      const userData = JSON.parse(savedUser);
+      setUser(userData.user);
+      setProfile(userData.profile);
+      setSession({ user: userData.user });
+    }
+    setLoading(false);
   }, []);
 
-  const fetchUserProfile = async (userId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('user_profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
+  const signIn = async (email: string, password: string) => {
+    const mockUser = mockUsers.find(u => u.email === email && u.password === password);
+    
+    if (!mockUser) {
+      throw new Error('Credenciales inválidas');
+    }
 
-      if (error) throw error;
-      setProfile(data);
+    if (!mockUser.profile.active) {
+      throw new Error('Usuario inactivo');
     } catch (error) {
       console.error('Error fetching user profile:', error);
     } finally {
@@ -82,17 +82,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    if (error) throw error;
+    const userData = { user: { id: mockUser.id, email: mockUser.email }, profile: mockUser.profile };
+    
+    setUser(userData.user);
+    setProfile(userData.profile);
+    setSession({ user: userData.user });
+    
+    localStorage.setItem('currentUser', JSON.stringify(userData));
   };
 
   const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) throw error;
+    setUser(null);
+    setProfile(null);
+    setSession(null);
+    localStorage.removeItem('currentUser');
   };
 
   const signUp = async (email: string, password: string, fullName: string, role: 'inspector' | 'supervisor' | 'admin') => {
@@ -101,33 +104,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       throw new Error('No tienes permisos para crear usuarios');
     }
 
-    const { data, error } = await supabase.auth.signUp({
+    // Mock user creation - in a real app this would create in Supabase
+    const newUser = {
+      id: Date.now().toString(),
       email,
       password,
-      options: {
-        data: {
-          full_name: fullName,
-          role: role
-        }
-      }
-    });
-
-    if (error) throw error;
-
-    // Create user profile
-    if (data.user) {
-      const { error: profileError } = await supabase
-        .from('user_profiles')
-        .insert({
-          id: data.user.id,
-          full_name: fullName,
-          role: role,
-          department: 'datacenter',
-          active: true
-        });
-
-      if (profileError) throw profileError;
-    }
+      profile: { id: Date.now().toString(), full_name: fullName, role, department: 'datacenter', active: true }
+    };
+    
+    mockUsers.push(newUser);
   };
 
   const value = {
