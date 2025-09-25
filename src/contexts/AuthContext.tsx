@@ -97,6 +97,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(userData.user);
       setProfile(userData.profile);
       setSession({ user: userData.user });
+    }
     if (error) throw error;
     
     // Profile will be fetched automatically by the auth state change listener
@@ -116,6 +117,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const { data, error } = await supabase.auth.signUp({
       email,
+    }
+    )
     if (error) throw error;
 
     return data;
